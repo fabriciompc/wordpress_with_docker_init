@@ -1,0 +1,58 @@
+version: '3.6'
+services:
+
+  wordpress:
+    image: wordpress:${WORDPRESS_VERSION:-php7.3-fpm}
+    container_name: wordpress
+    volumes:
+      - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini       
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wordpress:/var/www/html
+    environment:
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX}
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+    depends_on:
+      - mysql
+    restart: always
+
+  wpcli:
+    image: wordpress:cli
+    volumes:
+      - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wordpress:/var/www/html
+
+  mysql:
+    image: mariadb:${MARIADB_VERSION:-latest}
+    container_name: mysql
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    restart: always
+
+  nginx:
+    image: nginx:${NGINX_VERSION:-latest}
+    container_name: nginx
+    ports:
+      - '7008:7008'
+    volumes:
+      - ${NGINX_CONF_DIR:-./nginx}:/etc/nginx/conf.d
+      - ${NGINX_LOG_DIR:-./logs/nginx}:/var/log/nginx
+      - ${WORDPRESS_DATA_DIR:-./wordpress}:/var/www/html
+    depends_on:
+      - wordpress
+    restart: always
+
+  adminer:
+    image: adminer
+    restart: always
+    links:
+      - mysql
+    ports:
+      - 8080:8080

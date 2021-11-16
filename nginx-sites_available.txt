@@ -1,0 +1,18 @@
+server {
+    server_name dominio.com;
+    location / {
+        proxy_pass http://127.0.0.1:7008/;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect default;
+        proxy_buffering off;
+
+#        proxy_http_version 1.1;
+#        proxy_set_header Connection "Keep-Alive";
+        proxy_set_header Proxy-Connection "Keep-Alive";
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+}
